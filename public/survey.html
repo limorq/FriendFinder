@@ -242,7 +242,7 @@
       $.post("http://localhost:3000/api/friends", newFriend,
         function(data) {
 
-         //console.log("friend added to array");
+         alert("Your best match is: " + data);
 
           //Clear the form when submitting
           $("#userName").val("");
@@ -250,12 +250,12 @@
           $("#reserve-email").val("");
           $("#reserve-unique-id").val("");
           
-          <!-- Modal -->
-          var mod = $("#modal");
-          mod.html("<div class='modal-content'>");
-          mod.append("<div class='modal-header'>");
-          mod.append("<h5 class='modal-title'> Your Best Match");
-          mod.append(">button type='button' class= 'close' data-dismiss='modal' aria-label='Close'");
+          //Modal 
+         // var mod = $("#modal");
+         // mod.html("<div class='modal-content'>");
+         // mod.append("<div class='modal-header'>");
+         // mod.append("<h5 class='modal-title'> Your Best Match");
+         // mod.append(">button type='button' class= 'close' data-dismiss='modal' aria-label='Close'");
 
 
     
