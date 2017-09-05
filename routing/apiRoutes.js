@@ -1,52 +1,80 @@
-// We are linking our routes to the data source.
 var friends = require("../app/data/friends");
-var path = require("path");
 
-
+// ===============================================================================
 // ROUTING
+// ===============================================================================
 
 module.exports = function(app) {
-
-  // Below code handles when users "visit" a page
+  // API GET Requests
+  // Below code handles when users "visit" a page.
+  // In each of the below cases when a user visits a link
+  // (ex: localhost:PORT/api/admin... they are shown a JSON of the data in the table)
+  // ---------------------------------------------------------------------------
 
   app.get("/api/friends", function(req, res) {
     res.json(friends);
   });
 
+  // API POST Requests
+  // Below code handles when a user submits a form and thus submits data to the server.
+  // In each of the below cases, when a user submits form data (a JSON object)
+  // ...the JSON is pushed to the appropriate JavaScript array
+  // ---------------------------------------------------------------------------
 
   app.post("/api/friends", function(req, res) {
-    var currentUser = req.body;
-    var winner = {name: "Zee", photo: "zone1", scores: [1, 2, 3]};
-   friends.push(currentUser);
-   findFriend(currentUser);   
-   res.json(winner.name);  
-  });
-}
+    // Note the code here. Our "server" will respond to a user"s survey result
+    // Then compare those results against every user in the database.
+    // It will then calculate the difference between each of the numbers and the user"s numbers.
+    // It will then choose the user with the least differences as the "best friend match."
+    // In the case of multiple users with the same result it will choose the first match.
+    // After the test, it will push the user to the database.
 
-function findFriend(me) {
-	var totalDiff = 0;
-  for (var i=1; i<friends.length; i++) {
-      var you = friends[i];
-      console.log('this is you ' + you.name);
-      console.log('this is me ' + me.name);
-      for (var j=0; j<you.scores[j].length; j++) {
-        console.log("this is your current score " + you.scores[j]);
-        console.log("this is my current score " + me.scores[j]);
-        if (you.scores[j] === me.scores[j]) {
-          totalDiff += 0;
-        }
-        else {
-          totalDiff += (Math.abs(you.scores[j] - me.scores[j]));
-        }
+    // We will use this object to hold the "best match". We will constantly update it as we
+    // loop through all of the options
+    var bestMatch = {
+      name: "",
+      photo: "",
+      friendDifference: Infinity
+    };
+
+    // Here we take the result of the user"s survey POST and parse it.
+    var userData = req.body;
+    var userScores = userData.scores;
+
+    // This variable will calculate the difference between the user"s scores and the scores of
+    // each user in the database
+    var totalDifference;
+
+    // Here we loop through all the friend possibilities in the database.
+    for (var i = 0; i < friends.length; i++) {
+      var currentFriend = friends[i];
+      totalDifference = 0;
+
+      console.log(currentFriend.name);
+
+      // We then loop through all the scores of each friend
+      for (var j = 0; j < currentFriend.scores.length; j++) {
+        var currentFriendScore = currentFriend.scores[j];
+        var currentUserScore = userScores[j];
+
+        // We calculate the difference between the scores and sum them into the totalDifference
+        totalDifference += Math.abs(parseInt(currentUserScore) - parseInt(currentFriendScore));
       }
-      friends[i].difference = totalDiff;     
-  }
-  for (var i=0; i<friends.length-1; i++) {
-    if (friends[i].difference < friends[i+1].difference) {
-      winner = friends[i];
+
+      // If the sum of differences is less then the differences of the current "best match"
+      if (totalDifference <= bestMatch.friendDifference) {
+        // Reset the bestMatch to be the new friend.
+        bestMatch.name = currentFriend.name;
+        bestMatch.photo = currentFriend.photo;
+        bestMatch.friendDifference = totalDifference;
+      }
     }
-  }
-  
-}
 
+    // Finally save the user's data to the database (this has to happen AFTER the check. otherwise,
+    // the database will always return that the user is the user's best friend).
+    friends.push(userData);
 
+    // Return a JSON with the user's bestMatch. This will be used by the HTML in the next page
+    res.json(bestMatch);
+  });
+};
